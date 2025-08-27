@@ -10,6 +10,7 @@ int main(){
     Table truth(input);
     truth.writeTable();
     //truth.printTable();
+    truth.op_and();
     truth.printTable("yo");
     return 0;
 }

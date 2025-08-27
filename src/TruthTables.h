@@ -64,9 +64,20 @@ class Table{//base truth table class.
         }
     }
 
-    void operations(){
+    void op_and(){//Uses and to compare all variables in the table.
+        std::vector<bool> rowInsert={true, false};
+        truthtable.push_back(rowInsert);
+        for(int i=0;i<rows;i++){
+            bool tempbuddy=true;
+            for(int j=0;j<=truthtable.size()-2;j++){//This loop should decide if all of them are true (and).
+                tempbuddy=tempbuddy&&truthtable[j][i];
+            }
+           //truthtable[truthtable.size()-1][i]=truthtable[truthtable.size()-3][i]&&truthtable[truthtable.size()-2][i];
+           truthtable[truthtable.size()-1][i]=tempbuddy;
+        }
 
-    };//Write to compare each row in operations.
+
+    };
     
 };
 
