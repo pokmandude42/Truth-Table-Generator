@@ -8,9 +8,16 @@ int main(){
     int input;
     std::cin>>input;
     Table truth(input);
-    truth.writeTable();
+    Table truthtable(input);
+   // truth.writeTable();
     //truth.printTable();
+    std::cout<<"\nTable 1: AND ::\n";
     truth.op_and();
     truth.printTable("yo");
+
+    std::cout<<"\nTable 2: OR :: \n";
+    truthtable.op_or();
+    truthtable.printTable("yo!");
+
     return 0;
 }
