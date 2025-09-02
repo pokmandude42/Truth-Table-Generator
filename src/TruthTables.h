@@ -94,7 +94,9 @@ class Table{//base truth table class.
         }
     }
     
-};
+};//Use Pointers for keeping the specific rows in check. For comparisons, have a vector of pointers pointing to spots in the truthtable vector.
+//Use those pointers for making a vector of those comparison rows. EX: if you typed q^p (pretend thats the and sign) it would shove the pointer for the result rows in the first element of the vector. Which could later be called for printing.
+//Another vector to store the letters/symbols used for printing at the top of the collumns.
 
 
 #endif

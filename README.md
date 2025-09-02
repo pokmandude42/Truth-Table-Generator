@@ -8,6 +8,8 @@ Have an app open seperate from the command line to have ease of use and visuals.
 
 Learn to use Git effectively through this project.
 
+Use CMake for my project to link it all together well.
+
 (Have fun)
 
 Currently Implemented:
