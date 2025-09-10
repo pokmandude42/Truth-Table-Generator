@@ -4,20 +4,25 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <string>
 class Table{//base truth table class.
     public:
     int varCount, rows;
+    std::vector<std::string> varNames;
     std::vector<std::vector<bool>> truthtable={{true,false}};//Vector for truth table values.
     Table(){};
     Table(int input){//Gets the variable count and the appropriate amount of rows. Sets up truth table base. Constructor.
         varCount=input;
+        rows=pow(2,varCount);
+        expandTable();
+        writeTable();//Immediately writes the base table values upon initialization of the object.
+    };
+    void expandTable(){
         for(int i=1;i<varCount;i++){//used to create proper amount of rows for truth table.
             std::vector<bool> temput={true};
             truthtable.push_back(temput);
         }
-        rows=pow(2,varCount);
-        writeTable();//Immediately writes the base table values upon initialization of the object.
-    };
+    }
 
     void writeTable(){//Writes the variable true/false values based on the variable count.
         int sequence=1,measure=0;//Sequence for the length of True/False segments. Measure to compare with sequence.
@@ -55,7 +60,7 @@ class Table{//base truth table class.
     void printTable(std::string joke){//Alternate function for printing, testing traditional collumns.
         std::cout<< " Printing Truth Table! \n";
         for(int y=0;y<truthtable.size();y++){
-            std::cout<<(y+1)<<" ";
+            std::cout<<varNames[y]<<" ";
         }
         std::cout<<std::endl;
         for(int c=0;c<rows;c++){//Increments through every row. Row count is 2 to the power of the variable count.
@@ -78,9 +83,19 @@ class Table{//base truth table class.
            //truthtable[truthtable.size()-1][i]=truthtable[truthtable.size()-3][i]&&truthtable[truthtable.size()-2][i];
            truthtable[truthtable.size()-1][i]=tempbuddy;
         }
-
-
-    };
+    }
+    void op_and(std::vector<int> varAmount){
+        std::vector<bool> rowInsert={true,false};
+        truthtable.push_back(rowInsert);
+        for(int j=0;j<rows;j++){
+            bool tempbuddy=true;
+            for(int i=0;i<varAmount.size();i++){
+                tempbuddy=tempbuddy&&truthtable[varAmount[i]][j];
+            }
+            truthtable[truthtable.size()-1][j]=tempbuddy;
+        }
+        appendNames(varAmount,"and");
+    }
 
     void op_or(){//Function to make an or tab for the truth table.
         std::vector<bool> rowInsert={true,false};
@@ -93,10 +108,68 @@ class Table{//base truth table class.
             truthtable[truthtable.size()-1][i]=tempbuddy;
         }
     }
-    
-};//Use Pointers for keeping the specific rows in check. For comparisons, have a vector of pointers pointing to spots in the truthtable vector.
-//Use those pointers for making a vector of those comparison rows. EX: if you typed q^p (pretend thats the and sign) it would shove the pointer for the result rows in the first element of the vector. Which could later be called for printing.
-//Another vector to store the letters/symbols used for printing at the top of the collumns.
+    void op_or(std::vector<int> varAmount){//Same as above function except it works on specific rows.
+        std::vector<bool> rowInsert={true,false};
+        truthtable.push_back(rowInsert);
+        for(int j=0;j<rows;j++){
+            bool tempbuddy=false;
+            for(int i=0;i<varAmount.size();i++){
+               tempbuddy=tempbuddy||truthtable[varAmount[i]][j];//Uses the index for the specific variable.s
+            }
+            truthtable[truthtable.size()-1][j]=tempbuddy;
+        }
+        appendNames(varAmount,"or");
+    }
+
+    void appendNames(std::vector<int> varAmount, std::string type){//Pushes Names for each collumn.
+        std::string tempTitle="";
+        for(int i=0;i<varAmount.size();i++){
+            tempTitle=tempTitle+varNames[varAmount[i]];
+            if(type=="and"){
+                tempTitle=tempTitle+'&';
+            }
+            if(type=="or"){
+                tempTitle=tempTitle+'|';
+            }
+        }
+        tempTitle.pop_back();
+        varNames.push_back(tempTitle);
+    }
+
+    void readfunc(){//Function to interpret and use inputs
+        std::string logicLine;
+        std::cout<<"What would you like to input?: (& is AND, | is OR. letters are variable; )";
+        std::cin>>logicLine;
+        std::vector<int> opLine;//Vector of integers to hold which lines are operators.
+        std::vector<int> varNumber;
+        int varOverload=0,tempVarCount=0;//Will be the amount of variables read from the function here.
+        for(int i=0; i<logicLine.length();i++){//Read each character and act accordingly.
+            if(logicLine[i]!='&'&&logicLine[i]!='|'){
+                varOverload++;
+                std::string tempString="a";tempString[0]=logicLine[i];
+                varNames.push_back(tempString);//Pushes each variable name into the varNames vector.
+                tempVarCount++;
+                varNumber.push_back(tempVarCount-1);//Loads the index for the variable in the truthtable into this vector.
+            }
+            else if(logicLine[i]=='&'||logicLine[i]=='|'){//Tests if the current characters is an operator.
+                opLine.push_back(i);
+            }
+        }
+        varCount=varOverload;
+        rows=pow(2,varCount);
+        expandTable();
+        writeTable();
+        for(int i=0;i<opLine.size();i++){//Test to see if I can have OR and AND in the same line with current implementation.
+        if(logicLine[opLine[i]]=='|'){//Checks which operator opLine is pointing to.
+            op_or(varNumber);
+        }
+        else if(logicLine[opLine[i]=='&']){
+            op_and(varNumber);
+        }
+    }
+
+    }
+};
 
 
 #endif
