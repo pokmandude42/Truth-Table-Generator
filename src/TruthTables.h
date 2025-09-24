@@ -5,9 +5,11 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <map>
 class Table{//base truth table class.
     public:
     int varCount, rows;
+    std::map<std::string, int> places;
     std::vector<std::string> varNames;
     std::vector<std::vector<bool>> truthtable={{true,false}};//Vector for truth table values.
     Table(){};
@@ -59,66 +61,54 @@ class Table{//base truth table class.
 
     void printTable(std::string joke){//Alternate function for printing, testing traditional collumns.
         std::cout<< " Printing Truth Table! \n";
+        std::vector<std::string> spacing;
         for(int y=0;y<truthtable.size();y++){
-            std::cout<<varNames[y]<<" ";
+            std::cout<<varNames[y]<<"    ";
+            int z=varNames[y].length();z=(z+1)/2;
+            std::string tempspace="";
+            for(int i=0;i<z;i++){
+                tempspace=tempspace+" ";
+            }
+            if(varNames[y].length()>1){tempspace+=" ";}
+            if(tempspace!=" "){
+            spacing.push_back(tempspace);
+            }
+            else{spacing.push_back("");}
         }
         std::cout<<std::endl;
         for(int c=0;c<rows;c++){//Increments through every row. Row count is 2 to the power of the variable count.
             for(int u=0;u<truthtable.size();u++){//Increments and prints for each value in a row. Three overall collumns.
-                if(truthtable[u][c]){std::cout<<"T ";}//Uses T and F for true and false because it is easier to look at visually.
-                else {std::cout<<"F ";}
+                if(truthtable[u][c]){std::cout<<"T    "<<spacing[u];}//Uses T and F for true and false because it is easier to look at visually.
+                else {std::cout<<"F    "<<spacing[u];}
             };
             std::cout<<std::endl;
         }
     }
 
-    void op_and(){//Uses the and operator to compare all variables in the table.
-        std::vector<bool> rowInsert={true, false};
-        truthtable.push_back(rowInsert);
-        for(int i=0;i<rows;i++){
-            bool tempbuddy=true;
-            for(int j=0;j<=truthtable.size()-2;j++){//This loop should decide if all of them are true (and).
-                tempbuddy=tempbuddy&&truthtable[j][i];
-            }
-           //truthtable[truthtable.size()-1][i]=truthtable[truthtable.size()-3][i]&&truthtable[truthtable.size()-2][i];
-           truthtable[truthtable.size()-1][i]=tempbuddy;
-        }
-    }
-    void op_and(std::vector<int> varAmount){
+    void op_and(std::string varA, std::string varB, std::vector<int> varAmount){
         std::vector<bool> rowInsert={true,false};
         truthtable.push_back(rowInsert);
+        int indexA=places[varA], indexB=places[varB];
         for(int j=0;j<rows;j++){
             bool tempbuddy=true;
-            for(int i=0;i<varAmount.size();i++){
-                tempbuddy=tempbuddy&&truthtable[varAmount[i]][j];
-            }
+            tempbuddy=tempbuddy&&truthtable[indexA][j];
+            tempbuddy=tempbuddy&&truthtable[indexB][j];
             truthtable[truthtable.size()-1][j]=tempbuddy;
         }
-        appendNames(varAmount,"and");
+        appendNames(varA,varB,"and");
     }
 
-    void op_or(){//Function to make an or tab for the truth table.
+    void op_or(std::string varA, std::string varB, std::vector<int> varAmount){
         std::vector<bool> rowInsert={true,false};
         truthtable.push_back(rowInsert);
-        for(int i=0;i<rows;i++){//Counts through each row and compares all the values in the table's existing rows.
-            bool tempbuddy=false;//Temporary variable to make it easier to look at and work with.
-            for(int j=0;j<=truthtable.size()-2;j++){//This loop should make it true if any in a row are true.
-                tempbuddy=tempbuddy||truthtable[j][i];
-            }
-            truthtable[truthtable.size()-1][i]=tempbuddy;
-        }
-    }
-    void op_or(std::vector<int> varAmount){//Same as above function except it works on specific rows.
-        std::vector<bool> rowInsert={true,false};
-        truthtable.push_back(rowInsert);
+        int indexA=places[varA], indexB=places[varB];
         for(int j=0;j<rows;j++){
             bool tempbuddy=false;
-            for(int i=0;i<varAmount.size();i++){
-               tempbuddy=tempbuddy||truthtable[varAmount[i]][j];//Uses the index for the specific variable.s
-            }
+            tempbuddy=tempbuddy||truthtable[indexA][j];
+            tempbuddy=tempbuddy||truthtable[indexB][j];
             truthtable[truthtable.size()-1][j]=tempbuddy;
         }
-        appendNames(varAmount,"or");
+        appendNames(varA, varB, "or");
     }
 
     void appendNames(std::vector<int> varAmount, std::string type){//Pushes Names for each collumn.
@@ -135,39 +125,87 @@ class Table{//base truth table class.
         tempTitle.pop_back();
         varNames.push_back(tempTitle);
     }
+    
+    void appendNames(std::string varA, std::string varB, std::string type){//Create a collumn title using strings
+        std::string tempTitle="";
+        tempTitle=tempTitle+varA;
+        if(type=="and"){
+            tempTitle=tempTitle+'&';
+        }
+        if(type=="or"){
+            tempTitle=tempTitle+'|';
+        }
+        tempTitle=tempTitle+varB;
+        varNames.push_back(tempTitle);
+    }
 
     void readfunc(){//Function to interpret and use inputs
-        std::string logicLine;
+        std::string logicLine,inParenthesis;
         std::cout<<"What would you like to input?: (& is AND, | is OR. letters are variable; )";
         std::cin>>logicLine;
+        bool parenthesis=false;
         std::vector<int> opLine;//Vector of integers to hold which lines are operators.
         std::vector<int> varNumber;
-        int varOverload=0,tempVarCount=0;//Will be the amount of variables read from the function here.
+        int VarOverload=0, tempVarCount=0;//Will be the amount of variables read from the function here.
         for(int i=0; i<logicLine.length();i++){//Read each character and act accordingly.
-            if(logicLine[i]!='&'&&logicLine[i]!='|'){
-                varOverload++;
+            if(logicLine[i]=='('){
+                parenthesis=true;
+            }
+            if(logicLine[i]==')'){
+                parenthesis=false;
+            }
+            if(parenthesis==true){
+                if(logicLine[i]!='&'&&logicLine[i]!='|'&&logicLine[i]!='('&&logicLine[i]!=')'){
+                VarOverload++;
                 std::string tempString="a";tempString[0]=logicLine[i];
                 varNames.push_back(tempString);//Pushes each variable name into the varNames vector.
                 tempVarCount++;
                 varNumber.push_back(tempVarCount-1);//Loads the index for the variable in the truthtable into this vector.
+                places[tempString]=(tempVarCount-1);//Loads Variable index into Dictionary
             }
             else if(logicLine[i]=='&'||logicLine[i]=='|'){//Tests if the current characters is an operator.
                 opLine.push_back(i);
             }
+            inParenthesis.push_back(logicLine[i]);
+            }//end parenthesis if
+            else{
+            if(logicLine[i]!='&'&&logicLine[i]!='|'&&logicLine[i]!='('&&logicLine[i]!=')'){
+                VarOverload++;
+                std::string tempString="a";tempString[0]=logicLine[i];
+                varNames.push_back(tempString);//Pushes each variable name into the varNames vector.
+                tempVarCount++;
+                varNumber.push_back(tempVarCount-1);//Loads the index for the variable in the truthtable into this vector.
+                places[tempString]=(tempVarCount-1);//Loads Variable index into Dictionary
+            }
+            else if(logicLine[i]=='&'||logicLine[i]=='|'){//Tests if the current characters is an operator.
+                opLine.push_back(i);
+            }
+        }//end else
         }
-        varCount=varOverload;
+        varCount=VarOverload;
         rows=pow(2,varCount);
         expandTable();
         writeTable();
         for(int i=0;i<opLine.size();i++){//Test to see if I can have OR and AND in the same line with current implementation.
         if(logicLine[opLine[i]]=='|'){//Checks which operator opLine is pointing to.
-            op_or(varNumber);
+           std::string tempOne="a",tempTwo="a";
+           if(logicLine[opLine[i]-1]==')'){tempOne[0]=logicLine[opLine[i]-2]; }
+           else{tempOne[0]=logicLine[opLine[i]-1];}
+           if(logicLine[opLine[i]+1]=='('){tempTwo[0]=logicLine[opLine[i]+2]; }
+           else{tempTwo[0]=logicLine[opLine[i]+1];}
+           op_or(tempOne,tempTwo,varNumber);//This and the line above pass the strings around the operator to the dictionary
         }
         else if(logicLine[opLine[i]=='&']){
-            op_and(varNumber);
+         std::string tempOne="a",tempTwo="a";
+         if(logicLine[opLine[i]-1]==')'){tempOne[0]=logicLine[opLine[i]-2]; }
+        else{tempOne[0]=logicLine[opLine[i]-1];}
+        if(logicLine[opLine[i]+1]=='('){tempTwo[0]=logicLine[opLine[i]+2]; }
+        else{tempTwo[0]=logicLine[opLine[i]+1];}
+            op_and(tempOne,tempTwo,varNumber);
         }
     }
-
+    inParenthesis.push_back(')');
+    std::cout<<"\n\n TEST: IN PARENTHESIS: "<<inParenthesis<<"\n";
     }
 };
 
