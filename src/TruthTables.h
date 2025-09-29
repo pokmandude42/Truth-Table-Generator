@@ -141,10 +141,13 @@ class Table{//base truth table class.
 
     void readfunc(){//Function to interpret and use inputs
         std::string logicLine,inParenthesis;
-        std::cout<<"What would you like to input?: (& is AND, | is OR. letters are variable; )";
+        std::vector<std::string> vecInParenthesis;
+        int parenthesisCount=0;//Keeps count of amount of parenthesis
+        std::cout<<"What would you like to input?: (& is AND, | is OR. letters are variable. Parenthesis work.)";
         std::cin>>logicLine;
         bool parenthesis=false;
-        std::vector<int> opLine;//Vector of integers to hold which lines are operators.
+        std::vector<int> opLine, ParOpLine;//Vector of integers to hold which lines are operators.
+        std::vector<std::vector<int>>vecParOpline;
         std::vector<int> varNumber;
         int VarOverload=0, tempVarCount=0;//Will be the amount of variables read from the function here.
         for(int i=0; i<logicLine.length();i++){//Read each character and act accordingly.
@@ -152,7 +155,9 @@ class Table{//base truth table class.
                 parenthesis=true;
             }
             if(logicLine[i]==')'){
+                vecInParenthesis[parenthesisCount].push_back(')');
                 parenthesis=false;
+                parenthesisCount++;
             }
             if(parenthesis==true){
                 if(logicLine[i]!='&'&&logicLine[i]!='|'&&logicLine[i]!='('&&logicLine[i]!=')'){
@@ -163,10 +168,19 @@ class Table{//base truth table class.
                 varNumber.push_back(tempVarCount-1);//Loads the index for the variable in the truthtable into this vector.
                 places[tempString]=(tempVarCount-1);//Loads Variable index into Dictionary
             }
+
             else if(logicLine[i]=='&'||logicLine[i]=='|'){//Tests if the current characters is an operator.
                 opLine.push_back(i);
+                if(vecParOpline.size()!=(parenthesisCount+1))
+                {vecParOpline.resize(parenthesisCount+1);}
+                vecParOpline[parenthesisCount].push_back(i);
+                ParOpLine.push_back(i);
             }
             inParenthesis.push_back(logicLine[i]);
+            if(vecInParenthesis.size()!=(parenthesisCount+1)){//
+                vecInParenthesis.resize(parenthesisCount+1);
+            }
+            vecInParenthesis[parenthesisCount].push_back(logicLine[i]);//Pushes into parentehsis vector
             }//end parenthesis if
             else{
             if(logicLine[i]!='&'&&logicLine[i]!='|'&&logicLine[i]!='('&&logicLine[i]!=')'){
@@ -186,26 +200,41 @@ class Table{//base truth table class.
         rows=pow(2,varCount);
         expandTable();
         writeTable();
+        if(vecInParenthesis.size()!=0){//Used to evaluate when parenthesis are involved
+            for(int x=0;x<vecParOpline.size();x++){
+                for(int i=0;i<vecParOpline[x].size();i++){
+                    if(logicLine[vecParOpline[x][i]]=='|'){
+                        std::string tempOne="a",tempTwo="a";
+                        tempOne[0]=logicLine[vecParOpline[x][i]-1];
+                        tempTwo[0]=logicLine[vecParOpline[x][i]+1];
+                        op_or(tempOne,tempTwo,varNumber);
+                    }
+                    else if(logicLine[vecParOpline[x][i]]=='&'){
+                        std::string tempOne="a",tempTwo="a";
+                        tempOne[0]=logicLine[vecParOpline[x][i]-1];
+                        tempTwo[0]=logicLine[vecParOpline[x][i]+1];
+                        op_and(tempOne,tempTwo,varNumber);
+                    }
+                }
+            }
+        }//End if handling parenthesis
+
+        else{
         for(int i=0;i<opLine.size();i++){//Test to see if I can have OR and AND in the same line with current implementation.
-        if(logicLine[opLine[i]]=='|'){//Checks which operator opLine is pointing to.
+        if(logicLine[opLine[i]]=='|'){//Checks which operator opLine is pointing to. Formats response.
            std::string tempOne="a",tempTwo="a";
-           if(logicLine[opLine[i]-1]==')'){tempOne[0]=logicLine[opLine[i]-2]; }
-           else{tempOne[0]=logicLine[opLine[i]-1];}
-           if(logicLine[opLine[i]+1]=='('){tempTwo[0]=logicLine[opLine[i]+2]; }
-           else{tempTwo[0]=logicLine[opLine[i]+1];}
+        tempOne[0]=logicLine[opLine[i]-1];
+        tempTwo[0]=logicLine[opLine[i]+1];
            op_or(tempOne,tempTwo,varNumber);//This and the line above pass the strings around the operator to the dictionary
         }
-        else if(logicLine[opLine[i]=='&']){
+        else if(logicLine[opLine[i]=='&']){//Formats response for and operations.
          std::string tempOne="a",tempTwo="a";
-         if(logicLine[opLine[i]-1]==')'){tempOne[0]=logicLine[opLine[i]-2]; }
-        else{tempOne[0]=logicLine[opLine[i]-1];}
-        if(logicLine[opLine[i]+1]=='('){tempTwo[0]=logicLine[opLine[i]+2]; }
-        else{tempTwo[0]=logicLine[opLine[i]+1];}
+        tempOne[0]=logicLine[opLine[i]-1];
+        tempTwo[0]=logicLine[opLine[i]+1];
             op_and(tempOne,tempTwo,varNumber);
         }
     }
-    inParenthesis.push_back(')');
-    std::cout<<"\n\n TEST: IN PARENTHESIS: "<<inParenthesis<<"\n";
+};
     }
 };
 
