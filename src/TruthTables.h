@@ -145,7 +145,7 @@ class Table{//base truth table class.
         int parenthesisCount=0;//Keeps count of amount of parenthesis
         std::cout<<"What would you like to input?: (& is AND, | is OR. letters are variable. Parenthesis work.)";
         std::cin>>logicLine;
-        bool parenthesis=false;
+        bool parenthesis=false,parenthOp=false;
         std::vector<int> opLine, ParOpLine;//Vector of integers to hold which lines are operators.
         std::vector<std::vector<int>>vecParOpline;
         std::vector<int> varNumber;
@@ -158,15 +158,28 @@ class Table{//base truth table class.
                 vecInParenthesis[parenthesisCount].push_back(')');
                 parenthesis=false;
                 parenthesisCount++;
+                if(logicLine[i+1]){
+                    if(logicLine[i+1]=='&'||logicLine[i+1]=='|'){
+                        parenthOp=true;
+                    }
+                }
             }
             if(parenthesis==true){
                 if(logicLine[i]!='&'&&logicLine[i]!='|'&&logicLine[i]!='('&&logicLine[i]!=')'){
-                VarOverload++;
+                    std::string tempcomp=" ";
+                    tempcomp[0]=logicLine[i];
+                    if(places.count(tempcomp)==1){//Tests if variable already exists.
+                     continue;   
+                    }
+                    else{
+                        VarOverload++;
                 std::string tempString="a";tempString[0]=logicLine[i];
                 varNames.push_back(tempString);//Pushes each variable name into the varNames vector.
                 tempVarCount++;
                 varNumber.push_back(tempVarCount-1);//Loads the index for the variable in the truthtable into this vector.
                 places[tempString]=(tempVarCount-1);//Loads Variable index into Dictionary
+                    }
+                
             }
 
             else if(logicLine[i]=='&'||logicLine[i]=='|'){//Tests if the current characters is an operator.
@@ -184,13 +197,20 @@ class Table{//base truth table class.
             }//end parenthesis if
             else{
             if(logicLine[i]!='&'&&logicLine[i]!='|'&&logicLine[i]!='('&&logicLine[i]!=')'){
+                std::string tempcomp=" ";
+                    tempcomp[0]=logicLine[i];
+                    if(places.count(tempcomp)==1){//Tests if variable already exists.
+                     continue;   
+                    }
+                    else{
                 VarOverload++;
                 std::string tempString="a";tempString[0]=logicLine[i];
                 varNames.push_back(tempString);//Pushes each variable name into the varNames vector.
                 tempVarCount++;
                 varNumber.push_back(tempVarCount-1);//Loads the index for the variable in the truthtable into this vector.
-                places[tempString]=(tempVarCount-1);//Loads Variable index into Dictionary
+                places[tempString]=(tempVarCount-1);//Loads Variable index into Dictionary/map
             }
+        }
             else if(logicLine[i]=='&'||logicLine[i]=='|'){//Tests if the current characters is an operator.
                 opLine.push_back(i);
             }
@@ -208,6 +228,7 @@ class Table{//base truth table class.
                         tempOne[0]=logicLine[vecParOpline[x][i]-1];
                         tempTwo[0]=logicLine[vecParOpline[x][i]+1];
                         op_or(tempOne,tempTwo,varNumber);
+
                     }
                     else if(logicLine[vecParOpline[x][i]]=='&'){
                         std::string tempOne="a",tempTwo="a";
@@ -216,6 +237,9 @@ class Table{//base truth table class.
                         op_and(tempOne,tempTwo,varNumber);
                     }
                 }
+            }
+            if(parenthOp){//Used to compare parenthesis as a whole to another variable.
+                
             }
         }//End if handling parenthesis
 
@@ -238,5 +262,5 @@ class Table{//base truth table class.
     }
 };
 
-
+//Use the Places map to load the index/values for parenthesis functions.
 #endif
