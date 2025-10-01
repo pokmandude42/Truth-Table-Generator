@@ -146,7 +146,7 @@ class Table{//base truth table class.
         std::cout<<"What would you like to input?: (& is AND, | is OR. letters are variable. Parenthesis work.)";
         std::cin>>logicLine;
         bool parenthesis=false,parenthOp=false;
-        std::vector<int> opLine, ParOpLine;//Vector of integers to hold which lines are operators.
+        std::vector<int> opLine;//Vector of integers to hold which lines are operators.
         std::vector<std::vector<int>>vecParOpline;
         std::vector<int> varNumber;
         int VarOverload=0, tempVarCount=0;//Will be the amount of variables read from the function here.
@@ -183,11 +183,9 @@ class Table{//base truth table class.
             }
 
             else if(logicLine[i]=='&'||logicLine[i]=='|'){//Tests if the current characters is an operator.
-                opLine.push_back(i);
                 if(vecParOpline.size()!=(parenthesisCount+1))
                 {vecParOpline.resize(parenthesisCount+1);}
                 vecParOpline[parenthesisCount].push_back(i);
-                ParOpLine.push_back(i);
             }
             inParenthesis.push_back(logicLine[i]);
             if(vecInParenthesis.size()!=(parenthesisCount+1)){//
@@ -243,7 +241,7 @@ class Table{//base truth table class.
             }
         }//End if handling parenthesis
 
-        else{
+        
         for(int i=0;i<opLine.size();i++){//Test to see if I can have OR and AND in the same line with current implementation.
         if(logicLine[opLine[i]]=='|'){//Checks which operator opLine is pointing to. Formats response.
            std::string tempOne="a",tempTwo="a";
@@ -257,10 +255,12 @@ class Table{//base truth table class.
         tempTwo[0]=logicLine[opLine[i]+1];
             op_and(tempOne,tempTwo,varNumber);
         }
-    }
+    
 };
     }
 };
-
+/*For single variable and parenthesis function, if blah[i+-1]=')' etc., have it go backwards/fowards till it hits the other parenthesis
+and use everything in between as a string to search in the Places map for the true/false table in the truthtable vector.
+*/
 //Use the Places map to load the index/values for parenthesis functions.
 #endif
