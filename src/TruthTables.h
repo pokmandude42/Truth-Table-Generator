@@ -85,8 +85,20 @@ class Table{//base truth table class.
         }
     }
 
-    void op_and(std::string varA, std::string varB, std::vector<int> varAmount){
+    void op_and(std::string varA, std::string varB, bool parenthesis=false, bool further=false, bool closer=false, bool both=false){
         std::vector<bool> rowInsert={true,false};
+        if(parenthesis){
+            if(further){
+                varB='('+varB+')';
+            }
+            else if(closer){
+                varA='('+varA+')';
+            }
+            else if(both){
+                varA='('+varA+')';
+                varB='('+varB+')';
+            }
+        }
         truthtable.push_back(rowInsert);
         int indexA=places[varA], indexB=places[varB];
         for(int j=0;j<rows;j++){
@@ -95,11 +107,23 @@ class Table{//base truth table class.
             tempbuddy=tempbuddy&&truthtable[indexB][j];
             truthtable[truthtable.size()-1][j]=tempbuddy;
         }
-        appendNames(varA,varB,"and");
+        appendNames(varA,varB,"and", parenthesis);
     }
 
-    void op_or(std::string varA, std::string varB, std::vector<int> varAmount){
+    void op_or(std::string varA, std::string varB, bool parenthesis=false, bool further=false,bool closer=false, bool both=false){
         std::vector<bool> rowInsert={true,false};
+        if(parenthesis){
+            if(further){
+                varB='('+varB+')';
+            }
+            else if(both){
+                varA='('+varA+')';
+                varB='('+varB+')';
+            }
+            else if(closer){
+                varA='('+varA+')';
+            }
+        }
         truthtable.push_back(rowInsert);
         int indexA=places[varA], indexB=places[varB];
         for(int j=0;j<rows;j++){
@@ -108,11 +132,12 @@ class Table{//base truth table class.
             tempbuddy=tempbuddy||truthtable[indexB][j];
             truthtable[truthtable.size()-1][j]=tempbuddy;
         }
-        appendNames(varA, varB, "or");
+        appendNames(varA, varB, "or",parenthesis);
     }
 
-    void appendNames(std::string varA, std::string varB, std::string type){//Create a collumn title using strings
+    void appendNames(std::string varA, std::string varB, std::string type, bool parenthesis=false){//Create a collumn title using strings
         std::string tempTitle="";
+        if(parenthesis){tempTitle=tempTitle+'(';}
         tempTitle=tempTitle+varA;
         if(type=="and"){
             tempTitle=tempTitle+'&';
@@ -121,6 +146,7 @@ class Table{//base truth table class.
             tempTitle=tempTitle+'|';
         }
         tempTitle=tempTitle+varB;
+        if(parenthesis){tempTitle=tempTitle+')';}
         varNames.push_back(tempTitle);
         int placeValue=varNames.size();
         places[tempTitle]=(placeValue-1);
@@ -215,14 +241,14 @@ class Table{//base truth table class.
                         std::string tempOne="a",tempTwo="a";
                         tempOne[0]=logicLine[vecParOpline[x][i]-1];
                         tempTwo[0]=logicLine[vecParOpline[x][i]+1];
-                        op_or(tempOne,tempTwo,varNumber);
+                        op_or(tempOne,tempTwo,true);
 
                     }
                     else if(logicLine[vecParOpline[x][i]]=='&'){
                         std::string tempOne="a",tempTwo="a";
                         tempOne[0]=logicLine[vecParOpline[x][i]-1];
                         tempTwo[0]=logicLine[vecParOpline[x][i]+1];
-                        op_and(tempOne,tempTwo,varNumber);
+                        op_and(tempOne,tempTwo,true);
                     }
                 }
             }//Due to coming before the parts below, parenthesis will always be processed first.
@@ -232,7 +258,7 @@ class Table{//base truth table class.
         for(int i=0;i<opLine.size();i++){//Test to see if I can have OR and AND in the same line with current implementation.
         if(logicLine[opLine[i]]=='|'){//Code for checking OR operations.
             if(logicLine[opLine[i]-1]==')'&&logicLine[opLine[i]+1]=='('){
-                multiparenthesis(logicLine,opLine[i]);
+                multiparenthesis(logicLine,opLine[i], "or");
             }
 
             else if(logicLine[opLine[i]-1]==')'){//Processing for parenthesis operations.
@@ -249,8 +275,8 @@ class Table{//base truth table class.
                 }
                 std::string tempTwo="a";
                 tempTwo[0]=logicLine[opLine[i]+1];
-                op_or(tempcheck,tempTwo,varNumber);//THink I can remove varNumber
-            }//Checks if an opreator
+                op_or(tempcheck,tempTwo,true,false,true);//THink I can remove varNumber
+            }
 
             else if(logicLine[opLine[i]+1]=='('){
                 std::string tempcheck;
@@ -264,43 +290,94 @@ class Table{//base truth table class.
                 for(int u=opLine[i]+2;u<=index_par;u++){
                     tempcheck.push_back(logicLine[u]);
                 }
-                std::cout<<std::endl<<tempcheck<<std::endl;
                 std::string tempOne="a";
                 tempOne[0]=logicLine[opLine[i]-1];
-                op_or(tempOne,tempcheck,varNumber);
+                op_or(tempOne,tempcheck,true,true);
             }
             else{
            std::string tempOne="a",tempTwo="a";
         tempOne[0]=logicLine[opLine[i]-1];
         tempTwo[0]=logicLine[opLine[i]+1];
-           op_or(tempOne,tempTwo,varNumber);//This and the line above pass the strings around the operator to the dictionary
+           op_or(tempOne,tempTwo);//This and the line above pass the strings around the operator to the dictionary
             }
         }
 
 
         else if(logicLine[opLine[i]=='&']){//Formats response for and operations.
-            if(logicLine[opLine[i]-1]==')'){
-
+            if(logicLine[opLine[i]-1]==')'&&logicLine[opLine[i]+1]=='('){
+                multiparenthesis(logicLine,opLine[i],"and");
+            }
+            else if(logicLine[opLine[i]-1]==')'){
+                std::string tempcheck;
+                int index_par;
+                for(int l=opLine[i]-1;l>=0;l--){//Goes backward
+                    if(logicLine[l]=='('){
+                        index_par=(l+1);
+                        break;
+                    }
+                }
+                for(int u=index_par;u<opLine[i]-1;u++){
+                    tempcheck.push_back(logicLine[u]);
+                }
+                std::string tempTwo="a";
+                tempTwo[0]=logicLine[opLine[i]+1];
+                op_and(tempcheck,tempTwo,true,false,true);//THink I can remove varNumber
             }
             else if(logicLine[opLine[i]+1]=='('){
-                
+                std::string tempcheck;
+                int index_par;
+                for(int l=opLine[i]+1;l<logicLine.size();l++){
+                    if(logicLine[l]==')'){
+                    index_par=(l-1);
+                    break;
+                    }
+                }
+                for(int u=opLine[i]+2;u<=index_par;u++){
+                    tempcheck.push_back(logicLine[u]);
+                }
+                std::string tempOne="a";
+                tempOne[0]=logicLine[opLine[i]-1];
+                op_and(tempOne,tempcheck,true,true);
             }
             else{
          std::string tempOne="a",tempTwo="a";
         tempOne[0]=logicLine[opLine[i]-1];
         tempTwo[0]=logicLine[opLine[i]+1];
-            op_and(tempOne,tempTwo,varNumber);
+            op_and(tempOne,tempTwo);
             }
         }
     
 };
     }
-    void multiparenthesis(std::string logicLine, int opLineValue){
-        
+    void multiparenthesis(std::string logicLine, int opLineValue, std::string type){
+        std::string tempcheck1,tempcheck2;
+        int index_par1, index_par2;
+        for(int l=(opLineValue-1);l>=0;l--){
+            if(logicLine[l]=='('){
+                index_par1=(l+1);
+                break;
+            }
+        }
+        for(int u=index_par1;u<opLineValue-1;u++){
+            tempcheck1.push_back(logicLine[u]);
+        }
+
+        for(int z=(opLineValue+2);z<=logicLine.size();z++){
+            if(logicLine[z]==')'){
+            index_par2=(z-1);
+            break;
+            }
+        }
+        for(int y=opLineValue+2;y<=index_par2;y++){
+            tempcheck2.push_back(logicLine[y]);
+        }
+        if(type=="or"){
+            op_or(tempcheck1,tempcheck2,true,false,false,true);
+        }
+        if(type=="and"){
+            op_and(tempcheck1,tempcheck2,true,false,false,true);
+        }
     };
 };
-/*For single variable and parenthesis function, if blah[i+-1]=')' etc., have it go backwards/fowards till it hits the other parenthesis
-and use everything in between as a string to search in the Places map for the true/false table in the truthtable vector.
-*/
-//Use the Places map to load the index/values for parenthesis functions.
+//Working on doing everything to op_and() that I did to op_or().
 #endif
